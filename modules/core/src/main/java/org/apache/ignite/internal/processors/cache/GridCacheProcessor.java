@@ -166,7 +166,7 @@ import static org.apache.ignite.internal.processors.cache.GridCacheUtils.isNearE
 @SuppressWarnings({"unchecked", "TypeMayBeWeakened", "deprecation"})
 public class GridCacheProcessor extends GridProcessorAdapter {
     /** */
-    private static final boolean START_CLIENT_CACHES =
+    private final boolean START_CLIENT_CACHES =
         IgniteSystemProperties.getBoolean(IgniteSystemProperties.IGNITE_START_CACHES_ON_JOIN, false);
 
     /** Shared cache context. */

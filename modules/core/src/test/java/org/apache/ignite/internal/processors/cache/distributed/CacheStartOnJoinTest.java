@@ -55,7 +55,7 @@ public class CacheStartOnJoinTest extends GridCommonAbstractTest {
     private static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
 
     /** Iteration. */
-    private static final int ITERATIONS = 5;
+    private static final int ITERATIONS = 3;
 
     /** */
     private boolean client;
@@ -137,12 +137,26 @@ public class CacheStartOnJoinTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
-    public void testStartNodes() throws Exception {
+    public void testConcurrentClientsStart1() throws Exception {
+        concurrentClientsStart(false);
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    public void testConcurrentClientsStart2() throws Exception {
+        concurrentClientsStart(true);
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    private void concurrentClientsStart(boolean createCache) throws Exception {
         for (int i = 0; i < ITERATIONS; i++) {
             try {
                 log.info("Iteration: " + (i + 1) + '/' + ITERATIONS);
 
-                doTest();
+                doTest(createCache);
             }
             finally {
                 stopAllGrids(true);
@@ -153,7 +167,7 @@ public class CacheStartOnJoinTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
-    private void doTest() throws Exception {
+    private void doTest(final boolean createCache) throws Exception {
         client = false;
 
         final int CLIENTS = 5;
@@ -172,7 +186,17 @@ public class CacheStartOnJoinTest extends GridCommonAbstractTest {
                 try {
                     b.await();
 
-                    startGrid(idx + SRVS);
+                    Ignite node = startGrid(idx + SRVS);
+
+                    if (createCache) {
+                        for (int c = 0; c < 5; c++) {
+                            for (IgniteCache cache : node.getOrCreateCaches(cacheConfigurations())) {
+                                cache.put(c, c);
+
+                                assertEquals(c, cache.get(c));
+                            }
+                        }
+                    }
                 }
                 catch (Exception e) {
                     throw new IgniteException(e);
@@ -197,9 +221,9 @@ public class CacheStartOnJoinTest extends GridCommonAbstractTest {
 
             for (int c = 0; c < 5; c++) {
                 for (IgniteCache cache : node.getOrCreateCaches(cacheConfigurations())) {
-                    cache.put(i, i);
+                    cache.put(c, c);
 
-                    cache.get(i);
+                    assertEquals(c, cache.get(c));
                 }
             }
         }
