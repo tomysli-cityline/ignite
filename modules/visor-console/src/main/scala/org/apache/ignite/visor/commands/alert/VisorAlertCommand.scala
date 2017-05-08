@@ -38,6 +38,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.sys.process.{Process, ProcessLogger}
 import scala.util.control.Breaks._
+import scala.collection.JavaConverters._
 
 /**
  * ==Overview==
@@ -93,6 +94,7 @@ import scala.util.control.Breaks._
  *         Grid-wide metrics (not node specific):
  *            cc - Total number of available CPUs in the grid.
  *            nc - Total number of nodes in the grid.
+ *            sc - Total number of server nodes in the grid.
  *            hc - Total number of physical hosts in the grid.
  *            cl - Current average CPU load (in %) in the grid.
  *
@@ -806,6 +808,7 @@ object VisorAlertCommand {
     private val ALERT_DESCRIPTORS = Map(
         "cc" -> VisorAlertMeta(BY_GRID, () => cl().metrics().getTotalCpus, dfltNodeValF),
         "nc" -> VisorAlertMeta(BY_GRID, () => cl().nodes().size, dfltNodeValF),
+        "sc" -> VisorAlertMeta(BY_GRID, () => cl().nodes().asScala.count(n => n.isClient() == false), dfltNodeValF),
         "hc" -> VisorAlertMeta(BY_GRID, () => U.neighborhood(cl().nodes()).size, dfltNodeValF),
         "cl" -> VisorAlertMeta(BY_GRID, () => (cl().metrics().getAverageCpuLoad * 100).toLong, dfltNodeValF),
         "aj" -> VisorAlertMeta(BY_NODE, dfltGridValF, (node) => node.metrics().getCurrentActiveJobs),
@@ -872,6 +875,7 @@ object VisorAlertCommand {
                 "Grid-wide metrics (not node specific):",
                 "   cc - Total number of available CPUs in the grid.",
                 "   nc - Total number of nodes in the grid.",
+                "   sc - Total number of server nodes in the grid.",
                 "   hc - Total number of physical hosts in the grid.",
                 "   cl - Current average CPU load (in %) in the grid.",
                 "",
